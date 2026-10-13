@@ -1,0 +1,15 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# 学習履歴と書き戻しで生成されるExcel
+data/history.db
+data/*_updated_*.xlsx
+.streamlit/secrets.toml
