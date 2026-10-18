@@ -182,5 +182,7 @@ def test_weak_first_prefers_weak_items(items):
         len(weak_ids & {q.item.item_id for q in generate_quiz(items, settings, stats, seed=s)})
         for s in range(20)
     ]
-    # 弱点10件(重み1+9+2+α)は、全問正解の他145件(重み1〜2)より明らかに多く選ばれる
-    assert sum(hits) / len(hits) > 3
+    # 弱点10件(重み1+9+2+α)は、全問正解の他の問題(重み1〜2)より明らかに多く選ばれる
+    # (一様ランダムなら 10×10/全件数 件程度。キーワードの追加で件数が変わっても成り立つよう比で見る)
+    random_hits = 10 * 10 / len(items)
+    assert sum(hits) / len(hits) > random_hits * 3

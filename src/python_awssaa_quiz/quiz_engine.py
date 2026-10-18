@@ -65,6 +65,10 @@ EXTRA_ALIASES: dict[str, tuple[str, ...]] = {
     "EC2 Auto Scaling": ("Auto Scaling",),
     "AWS Well-Architected フレームワーク": ("Well-Architected",),
     "AWS Snowファミリー": ("Snowball", "Snow"),
+    "S3 Glacier Flexible Retrieval": ("Glacier Flexible Retrieval",),
+    "S3 Glacier Instant Retrieval": ("Glacier Instant Retrieval",),
+    "Amazon FSx for NetApp ONTAP": ("NetApp ONTAP", "ONTAP"),
+    "Amazon FSx for OpenZFS": ("OpenZFS",),
 }
 
 # お互いを誤答にすると「どちらも正解」になりうる組み合わせ(名前の前方一致で拾えないもの)
@@ -74,13 +78,17 @@ RELATED_PAIRS: tuple[tuple[str, str], ...] = (
     ("Elastic Load Balancing(ELB)", "Gateway Load Balancer(GWLB)"),
     ("AWS Organizations", "サービスコントロールポリシー(SCP)"),
     ("S3ストレージクラス", "S3 Glacier Deep Archive"),
+    ("S3ストレージクラス", "S3 Glacier Flexible Retrieval"),
+    ("S3ストレージクラス", "S3 Glacier Instant Retrieval"),
+    ("AWS Transit Gateway", "AWS Cloud WAN"),
+    ("Amazon OpenSearch Service", "Amazon CloudSearch"),
     ("IAMロール", "AWS STS"),
     ("リージョン / AZ / エッジロケーション", "RDSマルチAZ"),
     ("RPO / RTO", "DR戦略"),
 )
 
 # 頻出ポイントが一般的すぎて、シナリオ問題の問題文にならないキーワードのNo
-SCENARIO_EXCLUDED_NOS: frozenset[int] = frozenset({13, 58, 72, 142, 143, 145})
+SCENARIO_EXCLUDED_NOS: frozenset[int] = frozenset({13, 58, 72, 142, 143, 145, 167})
 
 _PREFIX_RE = re.compile(r"^(Amazon|AWS)\s+")
 _PAREN_RE = re.compile(r"[((]([^()()]*)[))]")
