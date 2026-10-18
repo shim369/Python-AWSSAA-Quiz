@@ -2,8 +2,8 @@ from collections import Counter
 
 
 def test_loads_all_keywords(keywords):
-    assert len(keywords) == 151
-    assert [k.no for k in keywords] == list(range(1, 152))
+    assert len(keywords) == 160
+    assert [k.no for k in keywords] == list(range(1, 161))
 
 
 def test_categories_and_importance(keywords):
@@ -14,5 +14,5 @@ def test_categories_and_importance(keywords):
 def test_first_and_last_rows(keywords):
     first, last = keywords[0], keywords[-1]
     assert (first.name, first.excel_row, first.importance) == ("Amazon EC2", 5, 3)
-    assert last.excel_row == 155
+    assert last.excel_row == 164
     assert all(k.summary and k.exam_point for k in keywords)
