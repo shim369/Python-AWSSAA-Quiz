@@ -82,6 +82,7 @@ RELATED_PAIRS: tuple[tuple[str, str], ...] = (
     ("S3ストレージクラス", "S3 Glacier Instant Retrieval"),
     ("AWS Transit Gateway", "AWS Cloud WAN"),
     ("Amazon OpenSearch Service", "Amazon CloudSearch"),
+    ("Dedicated Hosts / Dedicated Instances", "AWS License Manager"),
     ("IAMロール", "AWS STS"),
     ("リージョン / AZ / エッジロケーション", "RDSマルチAZ"),
     ("RPO / RTO", "DR戦略"),
