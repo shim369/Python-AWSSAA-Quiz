@@ -13,3 +13,5 @@ wheels/
 data/history.db
 data/*_updated_*.xlsx
 .streamlit/secrets.toml
+
+.DS_Store
