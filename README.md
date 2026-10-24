@@ -32,6 +32,16 @@ uv run streamlit run app.py
 
 ブラウザで http://localhost:8501 が開きます。
 
+### デスクトップのアイコンから起動する(macOS)
+
+```bash
+./launcher/build.sh
+```
+
+デスクトップに `AWS SAA Quiz.app` ができます。ダブルクリックするとターミナルを出さずに起動し、ブラウザが開きます。
+起動中にもう一度ダブルクリックすると「ブラウザで開く」「アプリを終了」を選べます(ログは `~/Library/Logs/AWSSAAQuiz.log`)。
+アプリにはリポジトリの場所が埋め込まれるため、リポジトリを移動したら `build.sh` を実行し直してください。
+
 ## テスト
 
 ```bash
