@@ -172,3 +172,12 @@ def test_exam_mock_finishes_when_time_is_up(db_path):
     assert not at.exception
     assert at.session_state[EXAM_KEY].finished
     assert len(HistoryStore(db_path).exam_answers_df()) == len(exam.questions)
+
+
+def test_usage_page_renders(db_path):
+    at = AppTest.from_file(APP, default_timeout=TIMEOUT).run()
+    at.switch_page("pages/5_使い方.py").run()
+    assert not at.exception
+    assert at.title[0].value == "使い方"
+    text = " ".join(m.value for m in at.markdown)
+    assert "130分" in text and "720点" in text  # 定数から表示している

@@ -33,11 +33,13 @@ if quiz is not None and not quiz.finished:
     if st.button("続きから解く", type="primary"):
         st.switch_page("pages/1_クイズ.py")
 
-st.page_link(
+c1, c2 = st.columns(2)
+c1.page_link(
     "pages/4_本番形式.py",
     label="本番形式の問題(シナリオ問題・模擬試験)はこちら",
     icon="📝",
 )
+c2.page_link("pages/5_使い方.py", label="使い方", icon="❓")
 
 categories = list(dict.fromkeys(it.category for it in items))
 STAR_OPTIONS = {"★★★": 3, "★★": 2, "★": 1}
