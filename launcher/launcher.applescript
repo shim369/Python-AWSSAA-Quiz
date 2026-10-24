@@ -25,7 +25,8 @@ on run
 		return
 	end if
 
-	do shell script "cd " & quoted form of projectDir & " && STREAMLIT_SERVER_HEADLESS=true nohup " & quoted form of uvPath & " run streamlit run app.py > \"" & logFile & "\" 2>&1 &"
+	-- & を cd まで含めるとサブシェルが標準出力を握ったまま残り、do shell script が戻らなくなる
+	do shell script "cd " & quoted form of projectDir & " || exit 1; STREAMLIT_SERVER_HEADLESS=true nohup " & quoted form of uvPath & " run streamlit run app.py > \"" & logFile & "\" 2>&1 < /dev/null &"
 
 	-- 起動完了を最大30秒待ってからブラウザを開く
 	repeat 60 times
