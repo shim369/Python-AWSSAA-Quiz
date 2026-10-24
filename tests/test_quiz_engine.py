@@ -186,3 +186,24 @@ def test_weak_first_prefers_weak_items(items):
     # (一様ランダムなら 10×10/全件数 件程度。キーワードの追加で件数が変わっても成り立つよう比で見る)
     random_hits = 10 * 10 / len(items)
     assert sum(hits) / len(hits) > random_hits * 3
+
+
+def test_exam_missed_keywords_raise_weight(items):
+    from python_awssaa_quiz.quiz_engine import weakness_weight
+
+    item = items[0]
+    assert weakness_weight(item, None, exam_missed=True) == weakness_weight(item, None) + 2
+
+    # 本番形式で間違えた関連キーワード(全問正解済み)が、他の全問正解済みより選ばれやすい
+    missed = frozenset(it.no for it in items[:10])
+    stats = {it.item_id: ItemStats((True, True, True)) for it in items}
+    settings = QuizSettings(mode=QuizMode.WEAK_FIRST, count=10)
+
+    def hits(**kwargs):
+        return sum(
+            sum(q.item.no in missed for q in generate_quiz(items, settings, stats, seed=s, **kwargs))
+            for s in range(100)
+        )
+
+    # 重みは1→3(★★★なら2→4)になるので、2〜3倍程度選ばれやすくなる
+    assert hits(exam_missed_nos=missed) > hits() * 1.5

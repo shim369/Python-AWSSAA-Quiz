@@ -10,7 +10,15 @@ from python_awssaa_quiz.quiz_engine import (
     generate_quiz,
     needs_review,
 )
-from python_awssaa_quiz.ui import APP_TITLE, current_quiz, get_items, get_store, setup_page, start_quiz
+from python_awssaa_quiz.ui import (
+    APP_TITLE,
+    current_quiz,
+    exam_missed_nos,
+    get_items,
+    get_store,
+    setup_page,
+    start_quiz,
+)
 
 setup_page()
 st.title(APP_TITLE)
@@ -24,6 +32,12 @@ if quiz is not None and not quiz.finished:
     st.info(f"出題中のクイズがあります({len(quiz.answers)}/{len(quiz.questions)}問回答済み)")
     if st.button("続きから解く", type="primary"):
         st.switch_page("pages/1_クイズ.py")
+
+st.page_link(
+    "pages/4_本番形式.py",
+    label="本番形式の問題(シナリオ問題・模擬試験)はこちら",
+    icon="📝",
+)
 
 categories = list(dict.fromkeys(it.category for it in items))
 STAR_OPTIONS = {"★★★": 3, "★★": 2, "★": 1}
@@ -53,7 +67,7 @@ mode = st.radio(
     horizontal=True,
     captions=[
         "条件に合う問題からランダムに出題",
-        "不正解が多い・理解度△・★★★・未回答を優先",
+        "不正解が多い・理解度△・★★★・未回答・本番形式で間違えた関連キーワードを優先",
         "直近3回の回答に不正解がある問題だけ",
     ],
 )
@@ -96,5 +110,6 @@ for p in problems:
     st.warning(p)
 
 if st.button("クイズを始める", type="primary", width="stretch", disabled=bool(problems)):
-    start_quiz(generate_quiz(items, settings, stats, seed=seed), settings)
+    missed = exam_missed_nos() if mode is QuizMode.WEAK_FIRST else frozenset()
+    start_quiz(generate_quiz(items, settings, stats, seed=seed, exam_missed_nos=missed), settings)
     st.switch_page("pages/1_クイズ.py")

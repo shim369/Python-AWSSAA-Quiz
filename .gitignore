@@ -15,3 +15,6 @@ data/*_updated_*.xlsx
 .streamlit/secrets.toml
 
 .DS_Store
+
+# Claude API で生成した、未レビューの問題の下書き
+data/exam_questions/drafts/

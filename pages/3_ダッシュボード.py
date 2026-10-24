@@ -3,11 +3,14 @@
 from pathlib import Path
 
 import altair as alt
+import pandas as pd
 import streamlit as st
 
+from python_awssaa_quiz.exam_bank import PASSING_SCORE, ExamBankError, scaled_score
+from python_awssaa_quiz.exam_guide import TASKS, Domain
 from python_awssaa_quiz.excel_writer import judge_understanding, write_understanding
 from python_awssaa_quiz.loader import DEFAULT_EXCEL_PATH
-from python_awssaa_quiz.ui import get_keywords, get_store, setup_page
+from python_awssaa_quiz.ui import get_keywords, get_store, load_exam_bank, setup_page
 
 SERIES_COLOR = "#2a78d6"  # 系列が1つのグラフで共通に使う色
 
@@ -17,12 +20,95 @@ st.title("ダッシュボード")
 keywords = get_keywords()
 store = get_store()
 answers = store.answers_df()
+exam_answers = store.exam_answers_df()
 
-if answers.empty:
+if answers.empty and exam_answers.empty:
     st.info("まだ回答履歴がありません。クイズを解くとここに学習状況が表示されます。")
     if st.button("出題設定へ", type="primary"):
         st.switch_page("app.py")
     st.stop()
+
+
+def render_exam_section() -> None:
+    """本番形式の学習状況: 模擬試験のスコア推移と、分野・タスク別の正答率。"""
+    st.header("本番形式")
+    if exam_answers.empty:
+        st.info("まだ本番形式の問題に回答していません。")
+        return
+    try:
+        bank = {q.id: q for q in load_exam_bank()}
+    except ExamBankError as e:
+        st.error(f"本番形式の問題データに誤りがあります: {e}")
+        return
+
+    mocks = store.mock_exam_results()
+    st.subheader("模擬試験のスコア(目安)")
+    if mocks.empty:
+        st.caption("まだ模擬試験を受けていません。")
+    else:
+        mocks["スコア"] = [scaled_score(c, n) for c, n in zip(mocks["正解数"], mocks["問題数"])]
+        mocks["回"] = [f"{i + 1}回目" for i in range(len(mocks))]
+        c1, c2, c3 = st.columns(3)
+        c1.metric("受験回数", f"{len(mocks)} 回")
+        c2.metric("最新スコア", f"{mocks['スコア'].iloc[-1]}")
+        c3.metric("最高スコア", f"{mocks['スコア'].max()}")
+        x_mock = alt.X("回:O", title=None, sort=list(mocks["回"]), axis=alt.Axis(labelAngle=0))
+        base = alt.Chart(mocks).encode(
+            x=x_mock,
+            y=alt.Y("スコア:Q", scale=alt.Scale(domain=[0, 1000]), title="スコア"),
+            tooltip=[
+                alt.Tooltip("日時:T", format="%Y/%m/%d %H:%M"),
+                alt.Tooltip("スコア:Q"),
+                alt.Tooltip("正解数:Q"),
+                alt.Tooltip("問題数:Q"),
+            ],
+        )
+        passing = (
+            alt.Chart(pd.DataFrame({"y": [PASSING_SCORE]}))
+            .mark_rule(strokeDash=[4, 4], color="#888")
+            .encode(y="y:Q")
+        )
+        chart = (
+            base.mark_line(color=SERIES_COLOR, strokeWidth=2)
+            + base.mark_point(color=SERIES_COLOR, filled=True, size=64)
+            + passing
+        ).properties(height=200)
+        st.altair_chart(chart, width="stretch")
+        st.caption(f"点線は合格ライン({PASSING_SCORE}点)。スコアは正答率からの単純換算です。")
+
+    known = exam_answers[exam_answers["question_id"].isin(bank)].copy()
+    known["分野"] = [bank[q].domain.label for q in known["question_id"]]
+    known["タスク"] = [bank[q].task.label for q in known["question_id"]]
+    progress = st.column_config.ProgressColumn("正答率", format="percent", min_value=0, max_value=1)
+
+    st.subheader("分野別の正答率")
+    by_domain = known.groupby("分野")["is_correct"].agg(回答数="count", 正答率="mean")
+    by_domain = by_domain.reindex([d.label for d in Domain]).dropna().reset_index()
+    st.dataframe(by_domain, hide_index=True, width="stretch", column_config={"正答率": progress})
+
+    st.subheader("タスク別の正答率と問題の収録状況")
+    by_task = known.groupby("タスク")["is_correct"].agg(回答数="count", 正答率="mean")
+    rows = []
+    for t in TASKS.values():
+        n_questions = sum(q.task.id == t.id for q in bank.values())
+        stat = by_task.loc[t.label] if t.label in by_task.index else None
+        rows.append(
+            {
+                "タスク": t.label,
+                "収録問題数": n_questions,
+                "回答数": 0 if stat is None else int(stat["回答数"]),
+                "正答率": None if stat is None else stat["正答率"],
+            }
+        )
+    st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch", column_config={"正答率": progress})
+    st.caption("収録問題数が少ないタスクは、問題を追加すると本番の出題範囲をまんべんなく練習できます。")
+
+
+if answers.empty:
+    render_exam_section()
+    st.stop()
+
+st.header("キーワードクイズ")
 
 # ---------------------------------------------------------------- 概要
 learned = len(store.answered_nos() & {k.no for k in keywords})
@@ -132,3 +218,5 @@ if written:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             width="stretch",
         )
+
+render_exam_section()

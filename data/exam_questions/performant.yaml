@@ -1,0 +1,70 @@
+# 高性能なアーキテクチャの設計
+
+- id: E0009
+  domain: performant
+  task: "3.3"
+  question: |
+    あるニュースサイトは、記事のデータをAmazon RDS for PostgreSQLに保存している。
+    アクセスの大半は同じ人気記事の読み込みで、同じ結果を返すクエリが繰り返し実行されている。
+    データベースの負荷を下げ、読み込みの応答時間をミリ秒未満にしたい。最も適した方法はどれか。
+  choices:
+    - text: Amazon ElastiCacheをアプリケーションとデータベースの間に置き、クエリ結果をキャッシュする
+      correct: true
+      reason: インメモリのキャッシュでミリ秒未満の応答ができ、同じクエリがデータベースに届かなくなる
+    - text: RDSのリードレプリカを追加し、読み込みのクエリをリードレプリカに振り分ける
+      reason: データベースの負荷は分散できるが、ディスクベースのため応答時間はミリ秒未満にならない
+    - text: RDSのマルチAZ配置を有効にし、スタンバイにも読み込みを振り分ける
+      reason: マルチAZ配置(1つのスタンバイ)のスタンバイは読み込みに使えず、目的は可用性の向上
+    - text: RDSのストレージをプロビジョンドIOPSに変更し、IOPSを増やす
+      reason: ディスクの性能は上がるが、同じクエリを繰り返し実行する負荷自体は減らない
+  explanation: |
+    「同じデータの繰り返し読み込み」「ミリ秒未満」は キャッシュ(ElastiCache)の合図。
+    DynamoDBの場合はDAXが同じ役割を担う。
+  related_keywords: [51, 41, 40, 39]
+
+- id: E0010
+  domain: performant
+  task: "3.1"
+  question: |
+    ある企業は、世界中の拠点から数GBの動画ファイルを、米国東部リージョンにある1つのAmazon S3バケットにアップロードしている。
+    遠い拠点からのアップロードに時間がかかり、途中で失敗することもある。
+    アップロードを速く、確実にするための方法はどれか。
+  choices:
+    - text: バケットでS3 Transfer Accelerationを有効にし、高速化用のエンドポイントを使ってアップロードする
+      correct: true
+      reason: 最寄りのエッジロケーションからAWSのネットワークを通って転送されるため、遠い拠点からの転送が速くなる
+    - text: マルチパートアップロードを使い、ファイルを分割して並列にアップロードする
+      correct: true
+      reason: 並列転送で速くなり、失敗した部分だけを再送すればよいため、大きなファイルでも確実にアップロードできる
+    - text: バケットのストレージクラスをS3 Intelligent-Tieringに変更する
+      reason: アクセス頻度に応じて保存コストを最適化する機能で、アップロードの速さには関係しない
+    - text: バケットでS3バージョニングを有効にする
+      reason: オブジェクトの過去の版を残す機能で、アップロードの速さや確実さには関係しない
+    - text: S3ライフサイクルポリシーで、アップロードから1日後にS3 Glacier Flexible Retrievalへ移す
+      reason: 保存後のコストを下げる設定で、アップロードには関係しない
+  explanation: |
+    遠距離からのS3へのアップロードは Transfer Acceleration、大きなファイルは マルチパートアップロード(100MBを超えたら推奨)。
+    この2つはセットで出題されることが多い。
+  related_keywords: [26, 27, 18, 19]
+
+- id: E0011
+  domain: performant
+  task: "3.4"
+  question: |
+    あるゲーム会社は、UDPを使うリアルタイム対戦ゲームのサーバーを、複数のリージョンで運用している。
+    世界中のプレイヤーが最も近い正常なリージョンに低遅延で接続できるようにしたい。
+    また、プレイヤーの端末やファイアウォールに登録するため、接続先のIPアドレスを固定したい。最も適したサービスはどれか。
+  choices:
+    - text: AWS Global Accelerator
+      correct: true
+      reason: 固定のエニーキャストIPアドレスを提供し、AWSのネットワーク経由で最も近い正常なリージョンにTCP/UDPの通信を届ける
+    - text: Amazon CloudFront
+      reason: HTTP/HTTPSのコンテンツ配信が中心で、UDPのゲーム通信には使えない
+    - text: Amazon Route 53のレイテンシーベースルーティング
+      reason: 近いリージョンを返せるが、DNSで切り替えるためIPアドレスは固定にならず、キャッシュにより切り替えも遅れる
+    - text: 各リージョンのApplication Load Balancer
+      reason: ALBはHTTP/HTTPS用でUDPを扱えず、リージョンをまたいだ振り分けもできない
+  explanation: |
+    「固定IP」「TCP/UDP」「複数リージョンへの高速な振り分け・フェイルオーバー」が揃ったら Global Accelerator。
+    HTTPのコンテンツをキャッシュして配信するなら CloudFront、という使い分けを押さえる。
+  related_keywords: [79, 78, 77, 74]

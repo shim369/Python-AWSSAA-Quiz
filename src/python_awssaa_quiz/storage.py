@@ -8,11 +8,15 @@ from collections import defaultdict
 from contextlib import closing
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pandas as pd
 
 from .loader import DATA_DIR
 from .quiz_engine import ItemStats
+
+if TYPE_CHECKING:
+    from .exam_bank import ExamAnswer
 
 # 環境変数 AWSSAA_QUIZ_DB で保存先を変えられる(テスト用)
 DEFAULT_DB_PATH = Path(os.environ.get("AWSSAA_QUIZ_DB", DATA_DIR / "history.db"))
@@ -32,6 +36,21 @@ CREATE TABLE IF NOT EXISTS answers (
     UNIQUE (session_id, question_index)
 );
 CREATE INDEX IF NOT EXISTS idx_answers_item ON answers (item_id, answered_at);
+
+-- 本番形式の問題の回答。キーワードクイズの集計に混ざらないよう別テーブルにする
+CREATE TABLE IF NOT EXISTS exam_answers (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id     TEXT    NOT NULL,
+    question_index INTEGER NOT NULL,
+    question_id    TEXT    NOT NULL,
+    domain         TEXT    NOT NULL,
+    mode           TEXT    NOT NULL,  -- practice / mock
+    selected       TEXT    NOT NULL,  -- 選んだ選択肢の、元データでの位置(カンマ区切り)
+    is_correct     INTEGER NOT NULL,
+    answered_at    TEXT    NOT NULL,
+    UNIQUE (session_id, question_index)
+);
+CREATE INDEX IF NOT EXISTS idx_exam_answers_q ON exam_answers (question_id, answered_at);
 """
 
 
@@ -127,4 +146,70 @@ class HistoryStore:
         df["日付"] = df["answered_at"].dt.normalize()
         g = df.groupby("日付")["is_correct"].agg(["count", "mean"]).reset_index()
         g.columns = ["日付", "回答数", "正答率"]
+        return g
+
+    # ------------------------------------------------------------ 本番形式
+
+    def record_exam_answers(self, answers: list[ExamAnswer]) -> int:
+        """本番形式の回答をまとめて記録する。同じ(session_id, question_index)は二重に記録しない。
+        記録した件数を返す。"""
+        with closing(self._connect()) as conn, conn:
+            before = conn.total_changes
+            conn.executemany(
+                """
+                INSERT OR IGNORE INTO exam_answers
+                    (session_id, question_index, question_id, domain, mode,
+                     selected, is_correct, answered_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                [
+                    (
+                        a.session_id,
+                        a.question_index,
+                        a.question_id,
+                        a.domain,
+                        a.mode,
+                        ",".join(map(str, a.selected)),
+                        int(a.is_correct),
+                        (a.answered_at or datetime.now()).isoformat(timespec="seconds"),
+                    )
+                    for a in answers
+                ],
+            )
+            return conn.total_changes - before
+
+    def exam_answers_df(self) -> pd.DataFrame:
+        with closing(self._connect()) as conn:
+            df = pd.read_sql_query(
+                "SELECT * FROM exam_answers ORDER BY answered_at, id", conn
+            )
+        df["is_correct"] = df["is_correct"].astype(bool)
+        df["answered_at"] = pd.to_datetime(df["answered_at"])
+        return df
+
+    def exam_stats(self) -> dict[str, ItemStats]:
+        """問題IDごとの正誤(新しい順)。"""
+        with closing(self._connect()) as conn:
+            rows = conn.execute(
+                "SELECT question_id, is_correct FROM exam_answers "
+                "ORDER BY answered_at DESC, id DESC"
+            ).fetchall()
+        results: dict[str, list[bool]] = defaultdict(list)
+        for qid, ok in rows:
+            results[qid].append(bool(ok))
+        return {k: ItemStats(tuple(v)) for k, v in results.items()}
+
+    def mock_exam_results(self) -> pd.DataFrame:
+        """模擬試験1回ごとの結果(古い順)。"""
+        df = self.exam_answers_df()
+        df = df[df["mode"] == "mock"]
+        if df.empty:
+            return pd.DataFrame(columns=["日時", "問題数", "正解数", "正答率"])
+        g = (
+            df.groupby("session_id")
+            .agg(日時=("answered_at", "max"), 問題数=("is_correct", "count"), 正解数=("is_correct", "sum"))
+            .sort_values("日時")
+            .reset_index(drop=True)
+        )
+        g["正答率"] = g["正解数"] / g["問題数"]
         return g

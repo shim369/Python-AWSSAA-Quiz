@@ -10,8 +10,12 @@ requires-python = ">=3.12"
 dependencies = [
     "openpyxl>=3.1.5",
     "pandas>=3.0.6",
+    "pyyaml>=6.0.3",
     "streamlit>=1.65.0",
 ]
+
+[project.scripts]
+exam-questions = "python_awssaa_quiz.exam_cli:main"
 
 [build-system]
 requires = ["uv_build>=0.11.28,<0.12.0"]
@@ -20,6 +24,9 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
+]
+tools = [
+    "anthropic>=2.3.0",
 ]
 
 [tool.pytest.ini_options]

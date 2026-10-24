@@ -41,3 +41,46 @@ def test_stats_are_newest_first_and_grouped(tmp_path):
     assert list(daily["回答数"]) == [1, 2, 1]
     cat = store.category_accuracy().set_index("分野")
     assert cat.loc["分析", "正答率"] == 0.5
+
+
+def _exam(session, idx, qid, ok, when, mode="mock"):
+    from python_awssaa_quiz.exam_bank import ExamAnswer
+
+    return ExamAnswer(
+        session_id=session,
+        question_index=idx,
+        question_id=qid,
+        domain="secure",
+        mode=mode,
+        selected=(0, 2),
+        is_correct=ok,
+        answered_at=when,
+    )
+
+
+def test_exam_answers_are_separate_and_not_double_recorded(tmp_path):
+    store = HistoryStore(tmp_path / "h.db")
+    t = datetime(2026, 10, 1, 10)
+    rows = [_exam("m1", 0, "E0001", True, t), _exam("m1", 1, "E0002", False, t)]
+    assert store.record_exam_answers(rows) == 2
+    assert store.record_exam_answers(rows) == 0  # 二重記録しない
+    assert store.answers_df().empty  # キーワードクイズの履歴には混ざらない
+    df = store.exam_answers_df()
+    assert list(df["selected"]) == ["0,2", "0,2"]
+
+
+def test_exam_stats_and_mock_results(tmp_path):
+    store = HistoryStore(tmp_path / "h.db")
+    store.record_exam_answers(
+        [
+            _exam("m1", 0, "E0001", False, datetime(2026, 10, 1)),
+            _exam("m1", 1, "E0002", True, datetime(2026, 10, 1)),
+            _exam("p1", 0, "E0001", True, datetime(2026, 10, 2), mode="practice"),
+            _exam("m2", 0, "E0001", True, datetime(2026, 10, 3)),
+            _exam("m2", 1, "E0002", True, datetime(2026, 10, 3)),
+        ]
+    )
+    assert store.exam_stats()["E0001"].recent == (True, True, False)
+    mocks = store.mock_exam_results()
+    assert list(mocks["正解数"]) == [1, 2]  # 練習の回答は模擬試験の結果に含めない
+    assert list(mocks["正答率"]) == [0.5, 1.0]

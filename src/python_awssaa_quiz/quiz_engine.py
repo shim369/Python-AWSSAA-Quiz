@@ -355,9 +355,9 @@ def filter_items(items: Iterable[QuizItem], settings: QuizSettings) -> list[Quiz
     ]
 
 
-def weakness_weight(item: QuizItem, stats: ItemStats | None) -> float:
+def weakness_weight(item: QuizItem, stats: ItemStats | None, exam_missed: bool = False) -> float:
     """弱点優先モードの重み。
-    1 + 3×直近3回の不正解数 + 2×(理解度△) + 1×(★★★) + 1×(未回答)"""
+    1 + 3×直近3回の不正解数 + 2×(理解度△) + 1×(★★★) + 1×(未回答) + 2×(本番形式で関連問題を間違えた)"""
     stats = stats or ItemStats()
     history_level = judge_understanding(stats.recent)
     weak = item.understanding == "△" or history_level == "△"
@@ -367,6 +367,7 @@ def weakness_weight(item: QuizItem, stats: ItemStats | None) -> float:
         + 2 * weak
         + 1 * (item.importance == 3)
         + 1 * (not stats.answered)
+        + 2 * exam_missed
     )
 
 
@@ -380,6 +381,7 @@ def select_items(
     settings: QuizSettings,
     stats: Mapping[str, ItemStats],
     rng: random.Random,
+    exam_missed_nos: frozenset[int] = frozenset(),
 ) -> list[QuizItem]:
     pool = list(candidates)
     if settings.mode is QuizMode.REVIEW_MISTAKES:
@@ -390,7 +392,11 @@ def select_items(
     if settings.mode is QuizMode.WEAK_FIRST:
         # 重み付きの非復元抽出(Efraimidis–Spirakis法)。重いものほど前に来やすい
         keyed = [
-            (rng.random() ** (1.0 / weakness_weight(it, stats.get(it.item_id))), it)
+            (
+                rng.random()
+                ** (1.0 / weakness_weight(it, stats.get(it.item_id), it.no in exam_missed_nos)),
+                it,
+            )
             for it in pool
         ]
         keyed.sort(key=lambda pair: pair[0], reverse=True)
@@ -404,13 +410,17 @@ def generate_quiz(
     settings: QuizSettings,
     stats: Mapping[str, ItemStats] | None = None,
     seed: int | None = None,
+    exam_missed_nos: frozenset[int] = frozenset(),
 ) -> list[Question]:
-    """設定に従って問題のリストを作る。seedを指定すると同じ結果が再現できる。"""
+    """設定に従って問題のリストを作る。seedを指定すると同じ結果が再現できる。
+    exam_missed_nos は、本番形式で関連問題を間違えたキーワードのNo(弱点優先で出やすくする)。"""
     if not settings.formats:
         raise ValueError("出題形式を1つ以上選んでください")
     rng = random.Random(seed)
     stats = stats or {}
-    selected = select_items(filter_items(items, settings), settings, stats, rng)
+    selected = select_items(
+        filter_items(items, settings), settings, stats, rng, exam_missed_nos
+    )
     return questions_for(selected, items, settings.formats, rng)
 
 
