@@ -71,7 +71,7 @@ def test_formulas_validation_and_formatting_kept(written):
     _, dest, _ = written
     wb = openpyxl.load_workbook(dest)
     summary = wb["分野別集計"]
-    assert summary["B4"].value == "=COUNTIF(キーワード一覧!$B$5:$B$176,A4)"
+    assert summary["B4"].value == "=COUNTIF(キーワード一覧!$B$5:$B$203,A4)"
     assert summary["D4"].value.startswith("=COUNTIFS(")
     assert summary["B16"].value == "=SUM(B4:B15)"
     formulas = [c.value for row in summary.iter_rows() for c in row if isinstance(c.value, str) and c.value.startswith("=")]
@@ -79,9 +79,9 @@ def test_formulas_validation_and_formatting_kept(written):
 
     ws = wb["キーワード一覧"]
     dvs = ws.data_validations.dataValidation
-    assert [str(dv.sqref) for dv in dvs] == ["G5:G176"]
+    assert [str(dv.sqref) for dv in dvs] == ["G5:G203"]
     assert "◎ 説明できる" in dvs[0].formula1
-    assert [str(cf.sqref) for cf in ws.conditional_formatting] == ["A5:G176"]
+    assert [str(cf.sqref) for cf in ws.conditional_formatting] == ["A5:G203"]
 
 
 def test_reloaded_values_match_loader(written):

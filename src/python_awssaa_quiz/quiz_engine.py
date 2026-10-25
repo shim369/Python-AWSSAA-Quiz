@@ -69,6 +69,14 @@ EXTRA_ALIASES: dict[str, tuple[str, ...]] = {
     "S3 Glacier Instant Retrieval": ("Glacier Instant Retrieval",),
     "Amazon FSx for NetApp ONTAP": ("NetApp ONTAP", "ONTAP"),
     "Amazon FSx for OpenZFS": ("OpenZFS",),
+    "CloudWatch RUM": ("RUM",),
+    "Tag Editor": ("タグエディタ",),
+    "AWS Partner Solutions(旧クイックスタート)": ("クイックスタート", "Quick Starts", "Quick Start"),
+    "Amazon Managed Grafana": ("Grafana",),
+    "Amazon Managed Service for Prometheus": ("Prometheus",),
+    "AWS Cost and Usage Report(CUR)": ("コストと使用状況レポート",),
+    "AWS Pricing Calculator": ("料金計算ツール",),
+    "AWS Cost Anomaly Detection": ("コスト異常検出",),
 }
 
 # お互いを誤答にすると「どちらも正解」になりうる組み合わせ(名前の前方一致で拾えないもの)
@@ -83,13 +91,26 @@ RELATED_PAIRS: tuple[tuple[str, str], ...] = (
     ("AWS Transit Gateway", "AWS Cloud WAN"),
     ("Amazon OpenSearch Service", "Amazon CloudSearch"),
     ("Dedicated Hosts / Dedicated Instances", "AWS License Manager"),
+    ("AWS Well-Architected フレームワーク", "AWS Well-Architected Tool"),
+    ("AWS X-Ray", "CloudWatch ServiceLens"),
+    ("AWS Trusted Advisor", "Service Quotas"),
+    ("AWS Trusted Advisor", "AWS Compute Optimizer"),
+    ("AWS Resource Groups", "Tag Editor"),
+    ("コスト配分タグ", "コストカテゴリ"),
+    ("AWS Budgets", "AWS Cost Anomaly Detection"),
+    ("AWSサポートプラン", "TAM(テクニカルアカウントマネージャー)"),
+    ("AWSサポートプラン", "コンシェルジュサポートチーム"),
+    ("AWSパートナーネットワーク(APN)", "AWSパートナーパス"),
+    ("AWSパートナーネットワーク(APN)", "コンサルティングパートナー"),
+    ("AWSパートナーパス", "コンサルティングパートナー"),
+    ("AWS Service Catalog", "AWS Proton"),
     ("IAMロール", "AWS STS"),
     ("リージョン / AZ / エッジロケーション", "RDSマルチAZ"),
     ("RPO / RTO", "DR戦略"),
 )
 
 # 頻出ポイントが一般的すぎて、シナリオ問題の問題文にならないキーワードのNo
-SCENARIO_EXCLUDED_NOS: frozenset[int] = frozenset({13, 58, 72, 142, 143, 145, 167})
+SCENARIO_EXCLUDED_NOS: frozenset[int] = frozenset({13, 58, 72, 142, 143, 145, 167, 188, 195})
 
 _PREFIX_RE = re.compile(r"^(Amazon|AWS)\s+")
 _PAREN_RE = re.compile(r"[((]([^()()]*)[))]")
