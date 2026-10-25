@@ -30,6 +30,7 @@ from .storage import DEFAULT_DB_PATH, HistoryStore
 APP_TITLE = "Python-AWSSAA-Quiz"
 QUIZ_KEY = "quiz"
 EXAM_KEY = "exam"
+KEYWORD_PAGE = "pages/キーワードクイズ.py"  # 既定の画面(st.switch_page の移動先にも使う)
 
 _CSS = """
 <style>
@@ -148,6 +149,7 @@ class QuizState:
     session_id: str = field(default_factory=lambda: uuid.uuid4().hex)
     index: int = 0
     answers: dict[int, int] = field(default_factory=dict)  # 問題番号 → 選んだ選択肢
+    ended: bool = False  # 結果を表示する(最後まで解いた、または途中で終了した)
 
     @property
     def finished(self) -> bool:
@@ -163,6 +165,10 @@ def start_quiz(questions: list[Question], settings: QuizSettings) -> None:
 
 def current_quiz() -> QuizState | None:
     return st.session_state.get(QUIZ_KEY)
+
+
+def clear_quiz() -> None:
+    st.session_state.pop(QUIZ_KEY, None)
 
 
 def submit_answer(index: int, choice: int) -> None:
@@ -186,8 +192,15 @@ def submit_answer(index: int, choice: int) -> None:
 
 def go_next() -> None:
     quiz = current_quiz()
-    if quiz is not None and quiz.index in quiz.answers:
+    if quiz is not None and quiz.index in quiz.answers and quiz.index + 1 < len(quiz.questions):
         quiz.index += 1
+
+
+def end_quiz() -> None:
+    """クイズを終えて結果を表示する(途中で終了しても、それまでの回答で結果を出す)。"""
+    quiz = current_quiz()
+    if quiz is not None and quiz.answers:
+        quiz.ended = True
 
 
 # ---------------------------------------------------------------- 本番形式の状態

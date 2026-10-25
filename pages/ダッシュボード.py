@@ -10,11 +10,10 @@ from python_awssaa_quiz.exam_bank import PASSING_SCORE, ExamBankError, scaled_sc
 from python_awssaa_quiz.exam_guide import TASKS, Domain
 from python_awssaa_quiz.excel_writer import judge_understanding, write_understanding
 from python_awssaa_quiz.loader import DEFAULT_EXCEL_PATH
-from python_awssaa_quiz.ui import get_keywords, get_store, load_exam_bank, setup_page
+from python_awssaa_quiz.ui import KEYWORD_PAGE, get_keywords, get_store, load_exam_bank
 
 SERIES_COLOR = "#2a78d6"  # 系列が1つのグラフで共通に使う色
 
-setup_page()
 st.title("ダッシュボード")
 
 keywords = get_keywords()
@@ -25,7 +24,7 @@ exam_answers = store.exam_answers_df()
 if answers.empty and exam_answers.empty:
     st.info("まだ回答履歴がありません。クイズを解くとここに学習状況が表示されます。")
     if st.button("出題設定へ", type="primary"):
-        st.switch_page("app.py")
+        st.switch_page(KEYWORD_PAGE)
     st.stop()
 
 

@@ -4,9 +4,7 @@ import streamlit as st
 
 from python_awssaa_quiz.exam_bank import MOCK_EXAM_SIZE, PASSING_SCORE, SECONDS_PER_QUESTION
 from python_awssaa_quiz.exam_guide import GUIDE_URL, TASKS, Domain
-from python_awssaa_quiz.ui import setup_page
 
-setup_page()
 st.title("使い方")
 st.caption("AWS 認定ソリューションアーキテクト – アソシエイト(SAA-C03)の学習用クイズアプリです。")
 
@@ -26,7 +24,7 @@ with tab_start:
 |---|---|---|
 | 目的 | サービスや用語を覚える | 本番と同じ形式のシナリオ問題に慣れる |
 | 問題 | キーワード集から自動で作る4択 | 試験ガイドに沿って作ったシナリオ問題(4択・複数選択) |
-| 始め方 | トップ画面で条件を選ぶ | サイドバーの「本番形式」 |
+| 始め方 | サイドバーの「キーワードクイズ」 | サイドバーの「本番形式」 |
 """
     )
     st.subheader("おすすめの学習の流れ")
@@ -41,15 +39,15 @@ with tab_start:
     st.subheader("画面の移動")
     st.markdown("左のサイドバーから各画面に移動できます。解いている途中で別の画面に移っても、続きから再開できます。")
     c1, c2, c3 = st.columns(3)
-    c1.page_link("app.py", label="キーワードクイズを始める", icon="🔤")
-    c2.page_link("pages/4_本番形式.py", label="本番形式を始める", icon="📝")
-    c3.page_link("pages/3_ダッシュボード.py", label="ダッシュボード", icon="📊")
+    c1.page_link("pages/キーワードクイズ.py", label="キーワードクイズを始める", icon="🔤")
+    c2.page_link("pages/本番形式.py", label="本番形式を始める", icon="📝")
+    c3.page_link("pages/ダッシュボード.py", label="ダッシュボード", icon="📊")
 
 # ---------------------------------------------------------------- キーワードクイズ
 with tab_keyword:
     st.markdown(
         """
-トップ画面で条件を選び、「クイズを始める」を押します。
+「キーワードクイズ」の画面で条件を選び、「クイズを始める」を押します。
 
 | 設定 | 内容 |
 |---|---|
@@ -86,6 +84,7 @@ with tab_keyword:
     st.markdown(
         """
 - 選択肢を押すとすぐに正誤が表示され、そのキーワードの「概要」と「試験での頻出ポイント」を確認できます
+- 出題設定・出題・結果は「キーワードクイズ」の画面の中で切り替わります。「ここで終了して結果を見る」で途中までの結果も確認でき、「中断して出題設定へ」で出題設定に戻れます
 - 結果画面では、正答率・分野別の正答率・間違えた問題の一覧を表示します。「間違えた問題をもう一度」で、間違えた問題だけをすぐ解き直せます
 """
     )
