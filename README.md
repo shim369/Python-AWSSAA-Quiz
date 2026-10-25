@@ -330,10 +330,10 @@ uv run pytest
 Python-AWSSAA-Quiz/
 ├── app.py                  # 起動用(画面の一覧とサイドバーの並び。st.navigation)
 ├── pages/
-│   ├── キーワードクイズ.py    # キーワードクイズの出題設定・出題・結果
-│   ├── 本番形式.py           # 本番形式の出題設定・出題・結果
-│   ├── ダッシュボード.py
-│   └── 使い方.py             # アプリ内の使い方(README の「使い方」と内容をそろえる)
+│   ├── keyword_quiz.py     # キーワードクイズの出題設定・出題・結果
+│   ├── exam.py             # 本番形式の出題設定・出題・結果
+│   ├── dashboard.py        # ダッシュボード
+│   └── how_to_use.py       # アプリ内の使い方(README の「使い方」と内容をそろえる)
 ├── src/python_awssaa_quiz/
 │   ├── loader.py           # Excelの読み込みとデータクラスへの変換
 │   ├── quiz_engine.py      # キーワードクイズの問題生成・出題順の決定(Streamlitに依存しない)

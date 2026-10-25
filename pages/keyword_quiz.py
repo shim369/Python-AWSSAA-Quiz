@@ -44,11 +44,11 @@ def render_settings() -> None:
 
     c1, c2 = st.columns(2)
     c1.page_link(
-        "pages/本番形式.py",
+        "pages/exam.py",
         label="本番形式の問題(シナリオ問題・模擬試験)はこちら",
         icon="📝",
     )
-    c2.page_link("pages/使い方.py", label="使い方", icon="❓")
+    c2.page_link("pages/how_to_use.py", label="使い方", icon="❓")
 
     categories = list(dict.fromkeys(it.category for it in items))
     star_options = {"★★★": 3, "★★": 2, "★": 1}
@@ -252,7 +252,7 @@ def render_result(quiz: QuizState) -> None:
         st.rerun()
     c2.button("出題設定へ", width="stretch", on_click=clear_quiz)
     if c3.button("ダッシュボード", width="stretch"):
-        st.switch_page("pages/ダッシュボード.py")
+        st.switch_page("pages/dashboard.py")
 
 
 # ---------------------------------------------------------------- 画面の切り替え

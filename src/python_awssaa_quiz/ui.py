@@ -30,7 +30,7 @@ from .storage import DEFAULT_DB_PATH, HistoryStore
 APP_TITLE = "Python-AWSSAA-Quiz"
 QUIZ_KEY = "quiz"
 EXAM_KEY = "exam"
-KEYWORD_PAGE = "pages/キーワードクイズ.py"  # 既定の画面(st.switch_page の移動先にも使う)
+KEYWORD_PAGE = "pages/keyword_quiz.py"  # 既定の画面(st.switch_page の移動先にも使う)
 
 _CSS = """
 <style>

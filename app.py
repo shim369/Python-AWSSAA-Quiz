@@ -8,8 +8,8 @@ setup_page()
 st.navigation(
     [
         st.Page(KEYWORD_PAGE, title="キーワードクイズ", icon="🔤", default=True),
-        st.Page("pages/本番形式.py", title="本番形式", icon="📝"),
-        st.Page("pages/ダッシュボード.py", title="ダッシュボード", icon="📊"),
-        st.Page("pages/使い方.py", title="使い方", icon="❓"),
+        st.Page("pages/exam.py", title="本番形式", icon="📝"),
+        st.Page("pages/dashboard.py", title="ダッシュボード", icon="📊"),
+        st.Page("pages/how_to_use.py", title="使い方", icon="❓"),
     ]
 ).run()

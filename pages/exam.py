@@ -62,7 +62,7 @@ def render_settings() -> None:
         "試験ガイドのタスクに沿った、シナリオ形式の問題です。"
         "正解が複数の問題(複数選択)も本番と同じく含まれます。"
     )
-    st.page_link("pages/使い方.py", label="使い方(練習と模擬試験の違い、タイマーなど)", icon="❓")
+    st.page_link("pages/how_to_use.py", label="使い方(練習と模擬試験の違い、タイマーなど)", icon="❓")
     questions = get_exam_questions()
     if not questions:
         st.info(
@@ -416,7 +416,7 @@ def render_result(exam: ExamState) -> None:
         st.rerun()
     c2.button("出題設定へ", width="stretch", on_click=clear_exam)
     if c3.button("ダッシュボード", width="stretch"):
-        st.switch_page("pages/ダッシュボード.py")
+        st.switch_page("pages/dashboard.py")
 
 
 # ---------------------------------------------------------------- 画面の切り替え

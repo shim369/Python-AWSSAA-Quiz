@@ -73,7 +73,7 @@ def test_quiz_flow_keeps_state_and_records_once(db_path):
     assert any(m.value == "50%" for m in at.metric)
 
     # ほかの画面に移って戻っても結果が表示され、「出題設定へ」で出題設定に戻る
-    at.switch_page("pages/ダッシュボード.py").run()
+    at.switch_page("pages/dashboard.py").run()
     assert not at.exception
     at.switch_page(KEYWORD_PAGE).run()
     assert at.title[0].value == "結果"
@@ -89,7 +89,7 @@ def test_quiz_end_early_and_retry_mistakes(db_path):
     _choice_buttons(at, quiz)[(q.answer_index + 1) % 4].click().run()  # 1問目を不正解
 
     # 別の画面に移っても、戻れば続きから表示される
-    at.switch_page("pages/使い方.py").run()
+    at.switch_page("pages/how_to_use.py").run()
     at.switch_page(KEYWORD_PAGE).run()
     assert "次の問題へ" in [b.label.split(" ")[0] for b in at.button]
 
@@ -116,7 +116,7 @@ def test_quiz_abort_returns_to_settings(db_path):
 
 # ---------------------------------------------------------------- 本番形式
 
-EXAM_PAGE = "pages/本番形式.py"
+EXAM_PAGE = "pages/exam.py"
 
 
 def _open_exam_page():
@@ -163,7 +163,7 @@ def test_exam_practice_flow_records_once(db_path):
     assert len(HistoryStore(db_path).exam_answers_df()) == total
     assert any(m.value == "50%" for m in at.metric)
 
-    at.switch_page("pages/ダッシュボード.py").run()
+    at.switch_page("pages/dashboard.py").run()
     assert not at.exception
 
 
@@ -196,7 +196,7 @@ def test_exam_mock_flow_without_timer(db_path):
     at.run()
     assert len(HistoryStore(db_path).exam_answers_df()) == total
 
-    at.switch_page("pages/ダッシュボード.py").run()
+    at.switch_page("pages/dashboard.py").run()
     assert not at.exception
 
 
@@ -220,7 +220,7 @@ def test_exam_mock_finishes_when_time_is_up(db_path):
 
 def test_usage_page_renders(db_path):
     at = AppTest.from_file(APP, default_timeout=TIMEOUT).run()
-    at.switch_page("pages/使い方.py").run()
+    at.switch_page("pages/how_to_use.py").run()
     assert not at.exception
     assert at.title[0].value == "使い方"
     text = " ".join(m.value for m in at.markdown)

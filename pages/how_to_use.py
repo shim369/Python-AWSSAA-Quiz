@@ -39,9 +39,9 @@ with tab_start:
     st.subheader("画面の移動")
     st.markdown("左のサイドバーから各画面に移動できます。解いている途中で別の画面に移っても、続きから再開できます。")
     c1, c2, c3 = st.columns(3)
-    c1.page_link("pages/キーワードクイズ.py", label="キーワードクイズを始める", icon="🔤")
-    c2.page_link("pages/本番形式.py", label="本番形式を始める", icon="📝")
-    c3.page_link("pages/ダッシュボード.py", label="ダッシュボード", icon="📊")
+    c1.page_link("pages/keyword_quiz.py", label="キーワードクイズを始める", icon="🔤")
+    c2.page_link("pages/exam.py", label="本番形式を始める", icon="📝")
+    c3.page_link("pages/dashboard.py", label="ダッシュボード", icon="📊")
 
 # ---------------------------------------------------------------- キーワードクイズ
 with tab_keyword:
