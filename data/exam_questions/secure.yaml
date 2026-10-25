@@ -92,3 +92,49 @@
     複数アカウントに対して「管理者でも外せない」上限を設けるのは SCP。
     SCPは権限を与えるものではなく、アカウント内で使える権限の上限を決める。検出(Config)と防止(SCP)の違いもよく問われる。
   related_keywords: [84, 85, 80, 124]
+
+# 確認: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-sharing.html
+- id: E0018
+  domain: secure
+  task: "1.1"
+  question: |
+    ある企業は、AWS Organizationsで複数のAWSアカウントを管理している。
+    ネットワークチームが自分のアカウントでVPCとサブネットを一元的に作成・管理し、各アプリケーションチームは自分のアカウントから、そのサブネットにEC2インスタンスやRDSデータベースを作成したい。コストはアプリケーションチームのアカウントごとに把握する必要がある。
+    管理するVPCの数を最も少なくできる方法はどれか。
+  choices:
+    - text: ネットワークチームのアカウントのサブネットを、AWS Resource Access Manager(RAM)で各アプリケーションチームのアカウントと共有する
+      correct: true
+      reason: VPCは1つのまま、各アカウントが共有されたサブネットに自分のリソースを作成でき、費用もリソースを作ったアカウントに計上される
+    - text: 各アプリケーションチームのアカウントにVPCを作成し、ネットワークチームのVPCとVPCピアリングで接続する
+      reason: アカウントごとにVPCが増え、ピアリング接続とルートの管理も必要になる
+    - text: 各アプリケーションチームのアカウントにVPCを作成し、AWS Transit Gatewayで相互に接続する
+      reason: 接続は一元管理できるが、アカウントごとのVPCは減らない
+    - text: アプリケーションチームにネットワークチームのアカウントのIAMロールを引き受けさせ、そのアカウント内にリソースを作成させる
+      reason: リソースと費用がネットワークチームのアカウントに属するため、アプリケーションチームのアカウントごとにコストを把握できない
+  explanation: |
+    同じ組織内の複数アカウントで1つのVPCを使うなら、RAMによるVPC共有(サブネットの共有)。所有者がネットワークを管理し、参加者は自分のリソースだけを作成・管理する。
+    VPCを分けたまま接続するなら、ピアリングやTransit Gatewayを使う。
+  related_keywords: [180, 84, 58, 64, 65]
+
+# 確認: https://docs.aws.amazon.com/artifact/latest/ug/what-is-aws-artifact.html
+- id: E0020
+  domain: secure
+  task: "1.3"
+  question: |
+    ある企業は、カード決済のシステムをAWS上に構築している。
+    外部の監査人から、システムが使っているAWSのインフラがPCI DSSに準拠していることを示す書類を提出するよう求められた。
+    最も少ない手間で書類を用意できる方法はどれか。
+  choices:
+    - text: AWS Artifactから、AWSのPCI DSSの準拠に関するレポートをダウンロードして提出する
+      correct: true
+      reason: AWSのインフラに関する第三者の監査レポートや認証を、必要なときにセルフサービスで入手できる
+    - text: AWS Audit Managerで、PCI DSSのフレームワークに沿って自社のAWS利用状況の証拠を収集する
+      reason: 自社の利用状況の証拠を集める仕組みで、AWSのインフラ自体の準拠を示す書類は得られない
+    - text: AWS Security HubでPCI DSSのセキュリティ標準を有効にし、チェック結果を提出する
+      reason: 自社のリソースの設定のチェックで、AWSのインフラの準拠を証明するものではない
+    - text: AWS Configの適合パックでPCI DSS向けのルールを評価し、その結果を提出する
+      reason: 自社のリソースの設定の評価で、AWS側のインフラの準拠を示す書類にはならない
+  explanation: |
+    責任共有モデルでは、AWSのインフラの準拠はAWSが第三者監査で証明し、その書類は AWS Artifact で入手する。
+    自社の設定やワークロードの準拠は、Audit Manager・Security Hub・Configなどで自分で確認・証明する。
+  related_keywords: [192, 172, 101, 124, 149]

@@ -90,3 +90,26 @@
     複数リージョンで読み書き(マルチアクティブ)なら DynamoDBグローバルテーブル。
     リレーショナルDBで複数リージョンに広げる場合は Aurora Global Database(書き込みはプライマリのリージョン)が候補になる。
   related_keywords: [46, 49, 48, 45]
+
+# 確認: https://docs.aws.amazon.com/servicequotas/latest/userguide/configure-cloudwatch.html
+- id: E0019
+  domain: resilient
+  task: "2.2"
+  question: |
+    ある企業のWebアプリケーションは、EC2 Auto Scalingでスケールアウトする。
+    先日のキャンペーンで、アカウントのオンデマンドインスタンスのvCPU数のクォータ(上限)に達し、新しいインスタンスを起動できなかった。今後は上限に近づいたら事前に通知を受け、必要に応じて引き上げを申請したい。
+    運用上の負荷が最も少ない方法はどれか。
+  choices:
+    - text: Service Quotasで該当するクォータにCloudWatchアラームを作成して通知を受け、Service Quotasから引き上げを申請する
+      correct: true
+      reason: クォータの使用率に対するアラームをそのまま作成でき、引き上げの申請も同じ画面からできる
+    - text: Auto Scalingグループの最大キャパシティを引き上げる
+      reason: グループの上限を上げても、アカウントのvCPU数のクォータは変わらず起動に失敗する
+    - text: AWS Health Dashboardのイベントを、Amazon EventBridge経由で通知する
+      reason: AWS側の障害やメンテナンスの通知で、クォータの使用率の通知には使えない
+    - text: 担当者が毎週Trusted Advisorのサービス制限のチェックを確認し、上限に近いときはサポートケースで引き上げを依頼する
+      reason: 手作業の確認になり運用負荷が大きく、急な増加には間に合わない
+  explanation: |
+    アカウントのクォータ(上限)は、Service Quotasで確認・引き上げ申請し、CloudWatchアラームで上限への接近を通知する。
+    スケーリングできない原因が、Auto Scalingグループの設定なのか、アカウントのクォータなのかを見分ける。
+  related_keywords: [190, 8, 121, 127, 129]

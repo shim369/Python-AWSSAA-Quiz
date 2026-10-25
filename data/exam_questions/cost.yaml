@@ -65,3 +65,73 @@
     長期の継続利用で、構成の変更やFargate・Lambdaへの移行がありうるなら Compute Savings Plans。
     構成が固定なら EC2 Instance Savings Plans やリザーブドインスタンスの方が割引率は高い。
   related_keywords: [4, 3, 15, 5]
+
+# 確認: https://docs.aws.amazon.com/compute-optimizer/latest/ug/what-is-compute-optimizer.html
+# 確認: https://docs.aws.amazon.com/cost-management/latest/userguide/ce-rightsizing.html
+- id: E0015
+  domain: cost
+  task: "4.2"
+  question: |
+    ある企業は、数百台のEC2インスタンスと、多数のAWS Lambda関数・Amazon EBSボリュームを運用している。
+    多くのリソースが必要以上のサイズで作られている疑いがあり、実際の使用率に基づいて、適切なインスタンスタイプ、Lambdaのメモリ量、EBSボリュームの構成を判断したい。
+    運用上の負荷が最も少ない方法はどれか。
+  choices:
+    - text: AWS Compute Optimizerにオプトインし、リソースごとの推奨事項を確認する
+      correct: true
+      reason: CloudWatchのメトリクスを分析し、EC2・Lambda・EBSなどのサイズや構成の推奨を自動で示してくれる
+    - text: AWS Cost Explorerの適正化(rightsizing)の推奨事項を確認する
+      reason: 対象はEC2インスタンスだけで、Lambdaのメモリ量やEBSボリュームの推奨は得られない
+    - text: CloudWatchのメトリクスをダッシュボードにまとめ、担当者が使用率を分析してサイズを決める
+      reason: 判断はできるが、数百のリソースを人手で分析するため運用負荷が大きい
+    - text: Compute Savings Plansを購入し、すべてのリソースに割引を適用する
+      reason: 単価は下がるが、リソースのサイズが過剰なことは解消されない
+  explanation: |
+    使用率に基づくライトサイジング(適正なサイズの判断)は Compute Optimizer。EC2だけでなくEBS・Lambda・Auto Scalingグループなども対象。
+    Cost Explorerの適正化の推奨はEC2だけが対象。Savings Plansは購入方法の最適化で、サイズの見直しとは別。
+  related_keywords: [130, 135, 121, 4]
+
+# 確認: https://docs.aws.amazon.com/cost-management/latest/userguide/manage-ad.html
+- id: E0016
+  domain: cost
+  task: "4.2"
+  question: |
+    ある企業では、多数の開発チームがそれぞれのAWSアカウントでEC2やLambdaなどを利用している。
+    設定ミスなどで特定のサービスのコストが普段より急に増えたときに、早く気づきたい。サービスごとの利用額は月によって大きく変わるため、固定の金額のしきい値を決めるのは難しい。
+    運用上の負荷が最も少ない方法はどれか。
+  choices:
+    - text: AWS Cost Anomaly Detectionでサービス単位のモニターを作成し、検出した異常をAmazon SNSで通知する
+      correct: true
+      reason: 機械学習で普段の利用パターンを学習し、固定のしきい値なしでコストの異常な増加を検出して原因の候補とともに通知する
+    - text: AWS Budgetsでサービスごとにコスト予算を作成し、予算額を超えたら通知する
+      reason: 固定の予算額を決めて見直し続ける必要があり、普段と比べた急な増加を検出する仕組みではない
+    - text: CloudWatchで請求額の見積もり(EstimatedCharges)に固定のしきい値のアラームを作成する
+      reason: 固定のしきい値が必要で、利用額が月ごとに変わる状況では異常を見分けにくい
+    - text: Lambda関数で毎日Cost Explorer APIからコストを取得し、前日と比べて増えていれば通知する
+      reason: 動作はするが、比較のロジックを自作して保守する必要があり運用負荷が大きい
+  explanation: |
+    「固定のしきい値を決めにくい」「普段と違う増え方に気づきたい」は Cost Anomaly Detection の合図。
+    決まった予算額に対する実績・予測の超過を通知したいなら AWS Budgets を選ぶ。
+  related_keywords: [199, 136, 135, 121]
+
+# 確認: https://docs.aws.amazon.com/cur/latest/userguide/what-is-cur.html
+- id: E0017
+  domain: cost
+  task: "4.4"
+  question: |
+    ある企業では、毎月のデータ転送料金が増え続けている。
+    どのリソースで、どの時間帯に、どの種類のデータ転送(AZ間、インターネット向けなど)の料金が発生しているかを、リソースIDと時間単位で、SQLを使って詳しく分析したい。
+    運用上の負荷が最も少ない方法はどれか。
+  choices:
+    - text: リソースIDを含む時間単位のコストと使用状況レポート(CUR)をS3に出力し、Amazon Athenaでクエリする
+      correct: true
+      reason: 料金と使用量の最も詳細なデータをリソース・時間単位でS3に出力でき、Athenaとの統合でそのままSQLで分析できる
+    - text: AWS Cost Explorerで、使用タイプごとにコストをグラフで表示して確認する
+      reason: 傾向の把握には使えるが、すべてのリソースの時間単位の明細をSQLで分析することはできない
+    - text: VPCフローログをS3に保存し、Amazon Athenaで通信量をクエリする
+      reason: 通信の量や相手はわかるが、どの料金がいくら発生しているかはわからない
+    - text: AWS CloudTrailのログをS3に保存し、Amazon Athenaでクエリする
+      reason: API操作の記録で、データ転送の料金や使用量は含まれない
+  explanation: |
+    リソース単位・時間単位の最も詳細な請求データを分析するなら、コストと使用状況レポート(CUR)をS3に出力してAthenaでクエリする。
+    Cost Explorerはグラフでの傾向分析や予測、VPCフローログは通信内容の分析、CloudTrailは操作の監査に使う。
+  related_keywords: [196, 138, 114, 135, 70]
