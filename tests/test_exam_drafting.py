@@ -1,6 +1,7 @@
 """問題の下書き生成(APIは呼ばず、偽のクライアントで確かめる)。"""
 
 import json
+from collections import Counter
 from types import SimpleNamespace
 
 import pytest
@@ -112,8 +113,10 @@ def test_written_drafts_load_like_handwritten_questions(tmp_path):
 def test_least_covered_tasks_and_prompt():
     bank = load_exam_questions()
     tasks = least_covered_tasks(bank, 2)
-    covered = {q.task.id for q in bank}
-    assert all(t.id not in covered for t in tasks)  # 未収録のタスクが先に選ばれる
+    counts = Counter(q.task.id for q in bank)
+    others = [t for t in TASKS.values() if t not in tasks]
+    # 収録の少ないタスクが先に選ばれる
+    assert max(counts[t.id] for t in tasks) <= min(counts[t.id] for t in others)
     prompt = build_user_prompt([TASKS["2.2"]], 3, bank, note="DR中心")
     assert "合計3問" in prompt and "DR中心" in prompt and "すでにある問題" in prompt
 

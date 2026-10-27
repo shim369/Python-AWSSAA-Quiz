@@ -68,3 +68,27 @@
     「固定IP」「TCP/UDP」「複数リージョンへの高速な振り分け・フェイルオーバー」が揃ったら Global Accelerator。
     HTTPのコンテンツをキャッシュして配信するなら CloudFront、という使い分けを押さえる。
   related_keywords: [79, 78, 77, 74]
+
+# 確認: https://docs.aws.amazon.com/appflow/latest/userguide/what-is-appflow.html
+# 確認: https://docs.aws.amazon.com/appflow/latest/userguide/flow-tutorial-salesforce-s3.html
+- id: E0024
+  domain: performant
+  task: "3.5"
+  question: |
+    ある企業の営業部門はSalesforceで商談を管理している。
+    分析チームは、Salesforceの商談データを毎日Amazon S3に取り込み、Amazon Athenaで集計したいと考えている。
+    開発者がいないため、コードを書かずに実現したい。最も適した方法はどれか。
+  choices:
+    - text: Amazon AppFlowでSalesforceを送信元、S3を送信先とするフローを作成し、毎日実行するようスケジュールする
+      correct: true
+      reason: SaaSとAWSの間のデータ転送を、コードを書かずにスケジュール実行できる
+    - text: Amazon EventBridgeのスケジュールでAWS Lambda関数を毎日起動し、Salesforce APIからデータを取得してS3に保存する
+      reason: 動作はするが、APIの呼び出しや認証、ページングの処理をコードで書いて保守する必要がある
+    - text: Amazon Kinesis Data Streamsでストリームを作成し、Salesforceのデータを書き込んでS3に保存する
+      reason: Salesforceのデータをストリームに送るプロデューサーを自前で作る必要があり、日次の取り込みにはおおげさな構成になる
+    - text: AWS DataSyncのタスクを作成し、Salesforceを転送元としてS3に毎日同期する
+      reason: DataSyncはNFS・SMBやオブジェクトストレージなどのストレージ間で転送するサービスで、SalesforceなどのSaaSは転送元にできない
+  explanation: |
+    「SaaS(Salesforce、Slack、Zendeskなど)とAWSのデータ連携を、コードなしで」は AppFlow。
+    ストレージ間の大量転送はDataSync、リアルタイムのストリーミングはKinesis、と取り込む元とタイミングで選ぶ。
+  related_keywords: [208, 37, 112, 114]

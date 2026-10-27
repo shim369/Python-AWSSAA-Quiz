@@ -113,3 +113,75 @@
     アカウントのクォータ(上限)は、Service Quotasで確認・引き上げ申請し、CloudWatchアラームで上限への接近を通知する。
     スケーリングできない原因が、Auto Scalingグループの設定なのか、アカウントのクォータなのかを見分ける。
   related_keywords: [190, 8, 121, 127, 129]
+
+# 確認: https://docs.aws.amazon.com/drs/latest/userguide/CloudEndure-Concepts.html
+# 確認: https://docs.aws.amazon.com/prescriptive-guidance/latest/backup-recovery/on-prem-dr-to-aws.html
+- id: E0021
+  domain: resilient
+  task: "2.2"
+  question: |
+    ある企業は、自社データセンターの物理サーバーとVMware仮想マシン、合わせて40台で基幹システムを運用している。
+    データセンターが被災した場合に備えて、AWSに災害対策の環境を用意したい。要件はRPOが数秒、RTOが数十分以内で、平常時のコストはできるだけ抑えたい。
+    最も適した方法はどれか。
+  choices:
+    - text: AWS Elastic Disaster Recoveryでサーバーを継続的にレプリケートし、災害時にAWS上でサーバーを起動する
+      correct: true
+      reason: ブロックレベルの継続的なレプリケーションで秒単位のRPOを実現し、平常時は低コストなステージング環境だけを維持できる
+    - text: AWS Backupで毎晩サーバーのバックアップを取得し、災害時にAWS上へ復元する
+      reason: RPOが最大で1日分になり、復元にも時間がかかるため要件を満たさない
+    - text: VM Import/Exportで毎週仮想マシンのイメージをAMIとして取り込み、災害時にそのAMIからEC2インスタンスを起動する
+      reason: 取り込んだ時点までしか戻せずRPOが大きく、物理サーバーにも対応しない
+    - text: AWS上に本番と同じ規模の環境を常時稼働させ、アクティブ/アクティブで運用する
+      reason: RPO・RTOは満たすが、平常時から本番と同じ規模の環境を動かすためコストが最も高い
+  explanation: |
+    オンプレミスのサーバーを丸ごと、低コストかつ秒単位のRPO・分単位のRTOでAWSに守るなら Elastic Disaster Recovery。
+    バックアップ&リストアは安いがRPO/RTOが大きく、マルチサイトは速いが高コスト、という並びでDR戦略を選ぶ。
+  related_keywords: [206, 145, 146, 38, 200]
+
+# 確認: https://docs.aws.amazon.com/ses/latest/dg/Welcome.html
+# 確認: https://docs.aws.amazon.com/sns/latest/dg/sns-email-notifications.html
+- id: E0025
+  domain: resilient
+  task: "2.1"
+  question: |
+    あるオンラインショップは、注文が確定するたびに、購入者ごとに注文内容を記載したHTML形式の確認メールを送りたい。
+    セール時には1時間に数万通を送ることがある。メールサーバーの運用はしたくない。
+    運用上の負荷が最も少ない方法はどれか。
+  choices:
+    - text: アプリケーションからAmazon SESのAPIを呼び出し、購入者ごとにメールを送信する
+      correct: true
+      reason: SESは宛先ごとに件名・本文を作ったメールを大量に送信できるマネージドサービスで、メールサーバーの運用は不要
+    - text: Amazon SNSのトピックに購入者のメールアドレスをサブスクライブさせ、注文ごとにメッセージを発行する
+      reason: 各アドレスで購読の確認が必要で、発行したメッセージはトピックの全購読者に届くため、購入者ごとのメールには向かない
+    - text: EC2インスタンスにメールサーバーを構築し、アプリケーションからSMTPで送信する
+      reason: 動作はするが、メールサーバーの構築・冗長化・パッチ適用や送信元の評価の管理が必要になる
+    - text: Amazon SQSのキューに注文を送り、購入者がキューをポーリングして注文内容を受け取る
+      reason: SQSはシステム間でメッセージを受け渡すキューで、購入者にメールを届ける仕組みではない
+  explanation: |
+    アプリから利用者へのメール(取引通知・マーケティング)を大量に送るなら SES。
+    SNSのメール通知は、購読を確認した運用者などへ同じ内容を一斉に知らせる用途と区別する。
+  related_keywords: [207, 106, 103, 147]
+
+# 確認: https://aws.amazon.com/amazon-mq/faqs/
+# 確認: https://docs.aws.amazon.com/amazon-mq/latest/migration-guide/concept-chapter-about.html
+- id: E0026
+  domain: resilient
+  task: "2.1"
+  question: |
+    ある企業は、オンプレミスのApache ActiveMQを使って、複数の業務アプリケーション間でJMSによりメッセージをやり取りしている。
+    これらのアプリケーションをAWSに移行するにあたり、メッセージブローカーのサーバー管理をやめたい。アプリケーションのコード変更は最小限にしたい。
+    最も適した方法はどれか。
+  choices:
+    - text: Amazon MQ for ActiveMQのブローカーを作成し、アプリケーションの接続先を切り替える
+      correct: true
+      reason: ActiveMQのマネージドサービスで、JMSやOpenWireなど既存のAPI・プロトコルをそのまま使えるため、コード変更は接続先の設定程度で済む
+    - text: Amazon SQSのキューを作成し、アプリケーションのメッセージ送受信をSQSのAPIに書き換える
+      reason: マネージドにはなるが、メッセージ送受信の処理をSQSのAPIに合わせて書き換える必要がある
+    - text: EC2インスタンスにActiveMQをインストールし、複数のAZに冗長構成で配置する
+      reason: コード変更は少ないが、ブローカーのサーバー管理が残るため要件を満たさない
+    - text: Amazon EventBridgeのイベントバスを作成し、アプリケーション間のメッセージをイベントとして振り分ける
+      reason: EventBridgeはJMSに対応しておらず、送受信の処理をイベントの発行・ルールに合わせて作り直す必要がある
+  explanation: |
+    既存のメッセージブローカー(ActiveMQ・RabbitMQ)を、標準のAPI・プロトコルのままマネージドに移すなら Amazon MQ。
+    新しく作るアプリで、シンプルなキューならSQS、Pub/SubならSNS、イベント駆動ならEventBridge、と使い分ける。
+  related_keywords: [110, 103, 107, 147]

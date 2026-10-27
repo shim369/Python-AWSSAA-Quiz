@@ -135,3 +135,54 @@
     リソース単位・時間単位の最も詳細な請求データを分析するなら、コストと使用状況レポート(CUR)をS3に出力してAthenaでクエリする。
     Cost Explorerはグラフでの傾向分析や予測、VPCフローログは通信内容の分析、CloudTrailは操作の監査に使う。
   related_keywords: [196, 138, 114, 135, 70]
+
+# 確認: https://docs.aws.amazon.com/dms/latest/userguide/CHAP_SchemaConversion.html
+# 確認: https://docs.aws.amazon.com/SchemaConversionTool/latest/userguide/CHAP_Welcome.html
+# 確認: https://docs.aws.amazon.com/dms/latest/userguide/Welcome.html
+- id: E0022
+  domain: cost
+  task: "4.3"
+  question: |
+    ある企業は、オンプレミスのOracle Databaseを使った受注システムを運用しており、商用ライセンスの費用を削減したいと考えている。
+    移行先はAmazon Aurora PostgreSQLとし、ストアドプロシージャも移行する必要がある。切り替え時のアプリケーションの停止時間は最小限にしたい。
+    この要件を満たすために組み合わせるべきものはどれか。
+  choices:
+    - text: DMS Schema Conversion(またはAWS SCT)で、スキーマとストアドプロシージャをAurora PostgreSQL向けに変換する
+      correct: true
+      reason: 異種エンジン間の移行では、スキーマやコードの変換が必要になる
+    - text: AWS DMSで全ロードを行った後、継続的なレプリケーション(CDC)で変更を同期し続け、同期が追いついた時点で切り替える
+      correct: true
+      reason: 移行中もソースDBを稼働させたまま変更を反映し続けられるため、停止時間を最小限にできる
+    - text: AWS Application Migration ServiceでデータベースサーバーをそのままEC2にリホストする
+      reason: Oracle Databaseのまま動かすことになり、商用ライセンスの費用は削減できない
+    - text: Oracleのエクスポートツールでダンプを取得し、Aurora PostgreSQLにインポートする
+      reason: ダンプ取得から取り込み完了までアプリを止める必要があり、Oracle形式のダンプは異種エンジンにそのまま取り込めない
+    - text: AWS DMSだけでデータを移行し、ストアドプロシージャも同時に移行する
+      reason: DMSが移行するのはデータで、ストアドプロシージャなどのコードを別のエンジン向けに変換する機能はない
+  explanation: |
+    異種DBの移行は「スキーマ変換(SCT / DMS Schema Conversion)+ データ移行(DMS)」の組み合わせ。
+    停止時間を最小にするには、全ロードの後にCDCで差分を同期し続け、追いついたところで切り替える。
+  related_keywords: [131, 132, 133, 43]
+
+# 確認: https://docs.aws.amazon.com/transfer/latest/userguide/what-is-aws-transfer-family.html
+- id: E0023
+  domain: cost
+  task: "4.1"
+  question: |
+    ある物流会社は、取引先から毎日SFTPで受け取る出荷データを、オンプレミスのSFTPサーバーに保存している。
+    この受け取り口をAWSに移し、データをAmazon S3に保存して分析に使いたい。取引先には接続先のホスト名の変更以外の作業を求めたくない。
+    運用上の負荷が最も少ない方法はどれか。
+  choices:
+    - text: AWS Transfer FamilyでSFTPサーバーを作成し、保存先にS3バケットを指定する
+      correct: true
+      reason: フルマネージドのSFTPエンドポイントで受け取ったファイルを直接S3に保存でき、取引先は既存のSFTPクライアントをそのまま使える
+    - text: EC2インスタンスにSFTPサーバーを構築し、受け取ったファイルをスクリプトでS3にコピーする
+      reason: 動作はするが、OSやSFTPサーバーのパッチ適用・冗長化・コピー処理の運用が必要になる
+    - text: AWS DataSyncのエージェントを取引先に配布し、取引先のストレージからS3へ転送させる
+      reason: 取引先にエージェントの設置と運用を求めることになり、SFTPでの受け取りという今の手順も変わる
+    - text: AWS Storage Gatewayのファイルゲートウェイを作成し、取引先にNFSでファイルを書き込んでもらう
+      reason: ファイルゲートウェイはNFS/SMBで使うもので、取引先はSFTPからの切り替えが必要になる
+  explanation: |
+    「既存のSFTP/FTPの手順を変えずに、保存先をS3/EFSにしたい」は Transfer Family。
+    自社のストレージから定期的にデータを移す・同期するならDataSync、オンプレミスからS3をファイル共有として使うならStorage Gateway、と使い分ける。
+  related_keywords: [204, 37, 35, 18]
