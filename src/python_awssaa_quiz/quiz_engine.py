@@ -77,6 +77,9 @@ EXTRA_ALIASES: dict[str, tuple[str, ...]] = {
     "AWS Cost and Usage Report(CUR)": ("コストと使用状況レポート",),
     "AWS Pricing Calculator": ("料金計算ツール",),
     "AWS Cost Anomaly Detection": ("コスト異常検出",),
+    "AWS Application Migration Service": ("MGN",),
+    "AWS Elastic Disaster Recovery(DRS)": ("CloudEndure",),
+    "Amazon SES": ("Simple Email Service",),
 }
 
 # お互いを誤答にすると「どちらも正解」になりうる組み合わせ(名前の前方一致で拾えないもの)
@@ -104,6 +107,14 @@ RELATED_PAIRS: tuple[tuple[str, str], ...] = (
     ("AWSパートナーネットワーク(APN)", "コンサルティングパートナー"),
     ("AWSパートナーパス", "コンサルティングパートナー"),
     ("AWS Service Catalog", "AWS Proton"),
+    ("AWS Application Migration Service", "AWS Elastic Disaster Recovery(DRS)"),
+    ("AWS Application Migration Service", "VM Import/Export"),
+    ("AWS Backup", "AWS Elastic Disaster Recovery(DRS)"),
+    ("AWS Application Discovery Service", "AWS Migration Hub"),
+    ("AWS Application Discovery Service", "Migration Evaluator"),
+    ("AWS DataSync", "AWS Transfer Family"),
+    ("AWS Outposts", "Amazon RDS on Outposts"),
+    ("Amazon SNS", "Amazon SES"),
     ("IAMロール", "AWS STS"),
     ("リージョン / AZ / エッジロケーション", "RDSマルチAZ"),
     ("RPO / RTO", "DR戦略"),

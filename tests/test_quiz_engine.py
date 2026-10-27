@@ -152,7 +152,7 @@ def test_same_seed_reproduces_quiz(items):
 def test_filters(items):
     settings = QuizSettings(categories=("移行",), importances=(2,), count=None)
     qs = generate_quiz(items, settings, seed=0)
-    assert {q.item.name for q in qs} == {"AWS DMS", "AWS SCT"}
+    assert {q.item.name for q in qs} == {"AWS DMS", "AWS SCT", "AWS Elastic Disaster Recovery(DRS)"}
 
 
 def test_scenario_excludes_generic_items(items):
