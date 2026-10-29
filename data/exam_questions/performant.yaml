@@ -92,3 +92,77 @@
     「SaaS(Salesforce、Slack、Zendeskなど)とAWSのデータ連携を、コードなしで」は AppFlow。
     ストレージ間の大量転送はDataSync、リアルタイムのストリーミングはKinesis、と取り込む元とタイミングで選ぶ。
   related_keywords: [208, 37, 112, 114]
+
+# 確認: https://docs.aws.amazon.com/managed-flink/latest/java/what-is.html
+# 確認: https://docs.aws.amazon.com/streams/latest/dev/introduction.html
+- id: E0027
+  domain: performant
+  task: "3.5"
+  question: |
+    あるオンライン決済会社は、毎秒数千件の決済イベントをAmazon Kinesis Data Streamsに送信している。
+    同じカードで短時間に高額な決済が続くといった不正の疑いを、イベントの発生から数秒以内に検知して担当者に通知したい。
+    運用上の負荷が最も少ない方法はどれか。
+  choices:
+    - text: Amazon Managed Service for Apache Flinkのアプリケーションでストリームを読み込み、時間枠ごとに集計して条件に合うものを通知する
+      correct: true
+      reason: ストリームを継続的に読み込み、時間枠での集計や状態を使った検知を数秒以内に行える。基盤の管理はAWSに任せられる
+    - text: Amazon Data FirehoseでイベントをS3に配信し、Amazon Athenaのクエリを5分ごとに実行して条件に合うものを通知する
+      reason: S3に配信してからクエリするため、検知までに数分以上かかり、数秒以内という要件を満たさない
+    - text: Amazon EMRクラスターを常時起動し、Spark Streamingのジョブでストリームを処理して通知する
+      reason: リアルタイム処理はできるが、クラスターのサイズ設定やパッチ適用、障害対応を自社で行う必要があり、運用負荷が大きい
+    - text: AWS Glueのジョブを1時間ごとに実行し、蓄積されたイベントを集計して条件に合うものを通知する
+      reason: バッチ処理のため検知が最大1時間遅れ、数秒以内という要件を満たさない
+  explanation: |
+    ストリーミングデータを「リアルタイムに集計・分析・異常検知」するなら Managed Service for Apache Flink(旧Kinesis Data Analytics)。
+    Firehose は保存先への配信、Glue や Athena はバッチ・アドホックの分析で、秒単位の判断には向かない。
+  related_keywords: [210, 112, 113, 117]
+
+# 確認: https://docs.aws.amazon.com/glue/latest/dg/add-crawler.html
+# 確認: https://docs.aws.amazon.com/athena/latest/ug/glue-athena.html
+- id: E0028
+  domain: performant
+  task: "3.5"
+  question: |
+    ある企業は、複数の業務システムから出力されるCSVファイルを、毎日Amazon S3に保存している。
+    ファイルの列構成はシステムごとに異なり、ときどき列が追加される。
+    分析担当者は、サーバーを管理せずに、これらのデータへ標準SQLでアドホックにクエリしたい。運用上の負荷が最も少ない組み合わせはどれか。
+  choices:
+    - text: AWS Glueのクローラーを定期的に実行し、S3のデータのスキーマを検出してAWS Glue Data Catalogにテーブルを登録する
+      correct: true
+      reason: 列構成の検出と、列が追加されたときのテーブル定義の更新を自動化できる
+    - text: Amazon AthenaでGlue Data Catalogのテーブルに対してSQLを実行する
+      correct: true
+      reason: S3上のデータにサーバーなしで標準SQLのクエリを実行でき、スキャンした量に応じた料金で済む
+    - text: Amazon EMRクラスターを起動し、Apache Hiveでテーブルを手動で定義してクエリする
+      reason: SQLでクエリできるが、クラスターの管理が必要で、列が追加されるたびにテーブル定義を手で直す必要がある
+    - text: Amazon Redshiftのプロビジョニングされたクラスターを作成し、毎日COPYコマンドでCSVを読み込む
+      reason: クラスターの管理と、システムごとのテーブル作成・読み込み処理の保守が必要になり、アドホックな分析には運用負荷が大きい
+    - text: Amazon Data FirehoseでS3のCSVファイルを読み込み、Parquet形式に変換して保存する
+      reason: Firehoseはストリーミングデータを送信先へ配信するサービスで、S3に保存済みのファイルを送信元にできない
+  explanation: |
+    S3のデータレイクにサーバーレスでSQLを実行するなら「Glueクローラー+Data Catalog+Athena」が定番の組み合わせ。
+    クローラーがスキーマを自動で検出・更新し、Athena はそのカタログを使ってクエリする。
+  related_keywords: [115, 114, 117, 52]
+
+# 確認: https://docs.aws.amazon.com/eks/latest/userguide/fargate.html
+- id: E0032
+  domain: performant
+  task: "3.2"
+  question: |
+    ある企業は、オンプレミスのKubernetesクラスターで数十のマイクロサービスを運用しており、マニフェストやHelmチャートなどの資産が多くある。
+    これらをAWSに移行し、負荷に応じて柔軟にスケールさせたいが、ワーカーノードとなるサーバーのサイズ選定やパッチ適用は行いたくない。
+    既存の資産への変更を最小限にして実現できる方法はどれか。
+  choices:
+    - text: Amazon EKSのクラスターを作成し、AWS Fargateでポッドを実行する
+      correct: true
+      reason: Kubernetesのマニフェストやツールをそのまま使え、ポッドごとに必要な容量が割り当てられるため、ノードの管理が不要になる
+    - text: Amazon ECSのクラスターを作成し、AWS Fargateでタスクを実行する
+      reason: サーバー管理は不要になるが、Kubernetesのマニフェストをタスク定義に書き換える必要があり、変更が大きい
+    - text: EC2インスタンスに自前でKubernetesをインストールし、EC2 Auto Scalingでワーカーノードを増減させる
+      reason: 既存の資産は使えるが、コントロールプレーンとノードのパッチ適用やサイズ選定を自社で行う必要がある
+    - text: AWS Elastic Beanstalkの Docker プラットフォームで、マイクロサービスごとに環境を作成する
+      reason: Kubernetesのマニフェストはそのまま使えず、数十のサービスごとに環境を作り直す必要がある
+  explanation: |
+    「既存のKubernetes資産を活かす」なら EKS、「サーバー(ノード)を管理しない」なら Fargate。両方の要件があれば EKS on Fargate。
+    Kubernetesの資産がなければ、よりシンプルな ECS on Fargate も候補になる。
+  related_keywords: [14, 15, 13, 16]

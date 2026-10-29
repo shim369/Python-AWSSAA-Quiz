@@ -185,3 +185,27 @@
     既存のメッセージブローカー(ActiveMQ・RabbitMQ)を、標準のAPI・プロトコルのままマネージドに移すなら Amazon MQ。
     新しく作るアプリで、シンプルなキューならSQS、Pub/SubならSNS、イベント駆動ならEventBridge、と使い分ける。
   related_keywords: [110, 103, 107, 147]
+
+# 確認: https://docs.aws.amazon.com/fis/latest/userguide/what-is.html
+# 確認: https://docs.aws.amazon.com/fis/latest/userguide/stop-conditions.html
+- id: E0030
+  domain: resilient
+  task: "2.2"
+  question: |
+    ある企業のWebアプリケーションは、2つのアベイラビリティーゾーンにまたがるAuto ScalingグループのEC2インスタンスで動いている。
+    一部のインスタンスが停止しても、利用者への影響なく処理が続くことを、本番に近い環境で定期的に検証したい。
+    検証中にエラー率が上がりすぎた場合は、自動で検証を止めたい。運用上の負荷が最も少ない方法はどれか。
+  choices:
+    - text: AWS Fault Injection Serviceでインスタンスを停止する実験テンプレートを作成し、エラー率のCloudWatchアラームを停止条件に設定する
+      correct: true
+      reason: 障害を意図的に起こす実験を繰り返し実行でき、アラームが発生したら停止条件により実験が自動で止まる
+    - text: AWS Lambda関数でランダムにインスタンスを停止するスクリプトを作成し、Amazon EventBridgeのスケジュールで定期的に実行する
+      reason: 障害は起こせるが、エラー率に応じて検証を止める仕組みや、対象・範囲の管理を自作して保守する必要がある
+    - text: AWS Trusted Advisorの耐障害性のチェックを定期的に確認する
+      reason: 構成がベストプラクティスに沿っているかを確認するだけで、実際に障害を起こして動作を検証することはできない
+    - text: Amazon Route 53のヘルスチェックをWebアプリケーションに設定し、異常時に通知する
+      reason: 稼働状況を監視する仕組みで、障害を意図的に起こして耐障害性を検証することはできない
+  explanation: |
+    「意図的に障害を起こして耐障害性を検証する(カオスエンジニアリング)」なら AWS Fault Injection Service(FIS)。
+    CloudWatchアラームを停止条件にして、影響が大きくなりすぎたら実験を自動で止められる点が、自作のスクリプトとの違い。
+  related_keywords: [225, 8, 121, 127]

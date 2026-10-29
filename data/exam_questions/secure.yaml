@@ -138,3 +138,49 @@
     責任共有モデルでは、AWSのインフラの準拠はAWSが第三者監査で証明し、その書類は AWS Artifact で入手する。
     自社の設定やワークロードの準拠は、Audit Manager・Security Hub・Configなどで自分で確認・証明する。
   related_keywords: [192, 172, 101, 124, 149]
+
+# 確認: https://docs.aws.amazon.com/lake-formation/latest/dg/data-filtering.html
+- id: E0029
+  domain: secure
+  task: "1.3"
+  question: |
+    ある小売企業は、Amazon S3上のデータレイクに全国の販売データと顧客データを保存し、Amazon Athenaで分析している。
+    各地域の担当者には自分の地域の行だけを見せ、マーケティング部門には顧客の電話番号やメールアドレスの列を見せないようにしたい。
+    テーブル単位のデータの複製はせず、アクセス権限を一元的に管理したい。最も適した方法はどれか。
+  choices:
+    - text: AWS Lake Formationでテーブルを管理し、行と列を絞り込むデータフィルターを作成して、担当者ごとにSELECT権限を付与する
+      correct: true
+      reason: 行レベル・列レベルのアクセス制御を一か所で設定でき、Athenaのクエリ結果にもそのまま適用される
+    - text: S3バケットポリシーで、地域ごとのプレフィックスへのアクセスをIAMロールごとに許可する
+      reason: プレフィックス(ファイル)単位の制御はできるが、同じファイルの中の特定の列を隠すことはできない
+    - text: AWS Glueのジョブで、地域別・部門別に必要な行と列だけを抜き出したテーブルを毎日作成する
+      reason: 権限ごとにデータの複製ができ、ジョブとテーブルの保守が増えるうえ、データの複製をしないという要件に反する
+    - text: Athenaのワークグループを部門ごとに作成し、クエリ結果の保存先を分ける
+      reason: ワークグループはクエリの実行設定やコストを分ける仕組みで、参照できる行や列を制限する機能ではない
+  explanation: |
+    データレイクで「行・列(セル)単位のきめ細かいアクセス制御を一元管理」と出たら Lake Formation。
+    S3バケットポリシーやIAMはオブジェクト(ファイル)単位までで、列や行の制御はできない。
+  related_keywords: [116, 114, 115, 18]
+
+# 確認: https://docs.aws.amazon.com/lambda/latest/dg/configuration-codesigning.html
+- id: E0031
+  domain: secure
+  task: "1.2"
+  question: |
+    ある金融機関は、AWS Lambda関数のコードをCI/CDパイプラインでビルドしてデプロイしている。
+    セキュリティ部門は、承認されたパイプラインでビルドされ、その後に改ざんされていないコードだけが、Lambda関数にデプロイされるようにしたい。
+    条件を満たさないコードはデプロイ自体を拒否したい。最も適した方法はどれか。
+  choices:
+    - text: AWS Signerでパイプラインがコードに署名し、Lambda関数のコード署名設定で署名のないコードを拒否する
+      correct: true
+      reason: デプロイ時に署名と改ざんの有無が検証され、信頼された署名のないコードはデプロイが拒否される
+    - text: デプロイパッケージを保存するS3バケットで、AWS KMSのキーによる暗号化を有効にする
+      reason: 保存時のデータを保護するが、コードを誰がビルドしたかや改ざんの有無は検証できず、デプロイも拒否されない
+    - text: Amazon InspectorでLambda関数のコードと依存パッケージの脆弱性をスキャンする
+      reason: 既知の脆弱性を見つける機能で、コードの出所や改ざんの有無を検証してデプロイを止めるものではない
+    - text: IAMポリシーで、lambda:UpdateFunctionCode をパイプラインのIAMロールだけに許可する
+      reason: デプロイできる人は絞れるが、デプロイするコード自体がビルド後に改ざんされていないかは検証できない
+  explanation: |
+    「信頼できるコードだけをデプロイさせる」「改ざんされていないことを保証する」は AWS Signer と Lambda のコード署名。
+    暗号化(KMS)は機密性、Inspector は脆弱性、IAM は操作する人の制限で、それぞれ守るものが違う。
+  related_keywords: [227, 12, 89, 99]
